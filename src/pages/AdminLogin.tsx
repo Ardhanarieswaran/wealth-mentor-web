@@ -15,15 +15,16 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Demo credentials for testing
-  const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'admin123'
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Get stored password or use default
+    const storedPassword = localStorage.getItem('adminPassword') || 'admin123';
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: storedPassword
+    };
+
     if (credentials.username === ADMIN_CREDENTIALS.username && 
         credentials.password === ADMIN_CREDENTIALS.password) {
       
@@ -52,6 +53,9 @@ const AdminLogin = () => {
       [e.target.name]: e.target.value
     }));
   };
+
+  // Get current password for demo display
+  const currentPassword = localStorage.getItem('adminPassword') || 'admin123';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
@@ -112,11 +116,11 @@ const AdminLogin = () => {
           {/* Demo credentials info */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 text-center mb-2">
-              <strong>Demo Credentials:</strong>
+              <strong>Current Credentials:</strong>
             </p>
             <p className="text-xs text-gray-500 text-center">
               Username: admin<br />
-              Password: admin123
+              Password: {currentPassword}
             </p>
           </div>
         </CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,11 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // Check authentication on component mount
   useEffect(() => {
@@ -46,10 +50,61 @@ const AdminDashboard = () => {
   };
 
   const handlePasswordChange = () => {
-    toast({
-      title: "Password Change",
-      description: "Password change functionality would be implemented here.",
+    // Get current stored credentials
+    const currentUsername = 'admin';
+    const currentStoredPassword = 'admin123';
+
+    // Validate current password
+    if (passwordForm.currentPassword !== currentStoredPassword) {
+      toast({
+        title: "Error",
+        description: "Current password is incorrect.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate new password
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate password confirmation
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New password and confirmation do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Store new password in localStorage (for demo purposes)
+    localStorage.setItem('adminPassword', passwordForm.newPassword);
+
+    // Clear form
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
     });
+
+    toast({
+      title: "Password Updated",
+      description: "Your admin password has been successfully changed.",
+    });
+  };
+
+  const handlePasswordInputChange = (field: string, value: string) => {
+    setPasswordForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleImageUpload = () => {
@@ -353,9 +408,24 @@ const AdminDashboard = () => {
                     Change Password
                   </label>
                   <div className="space-y-3">
-                    <Input type="password" placeholder="Current Password" />
-                    <Input type="password" placeholder="New Password" />
-                    <Input type="password" placeholder="Confirm New Password" />
+                    <Input 
+                      type="password" 
+                      placeholder="Current Password"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                    />
+                    <Input 
+                      type="password" 
+                      placeholder="New Password"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                    />
+                    <Input 
+                      type="password" 
+                      placeholder="Confirm New Password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                    />
                     <Button onClick={handlePasswordChange} variant="outline">
                       Update Password
                     </Button>
