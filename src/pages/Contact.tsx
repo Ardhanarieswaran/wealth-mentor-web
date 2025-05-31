@@ -56,20 +56,20 @@ const Contact = () => {
     {
       icon: <Mail className="h-6 w-6 text-blue-600" />,
       title: "Email Us",
-      content: "info@mraptharmonicpro.com",
+      content: "apttrading7@gmail.com",
       description: "Send us an email anytime"
     },
     {
       icon: <Phone className="h-6 w-6 text-green-600" />,
       title: "Call Us",
-      content: "+91 98765 43210",
+      content: "+91 6204193921",
       description: "Mon-Sat 9:00 AM - 7:00 PM"
     },
     {
       icon: <MapPin className="h-6 w-6 text-blue-600" />,
       title: "Visit Us",
-      content: "Mumbai, Maharashtra, India",
-      description: "Financial District"
+      content: "Tamil Nadu, India",
+      description: "Share Market Coaching Center"
     },
     {
       icon: <Clock className="h-6 w-6 text-green-600" />,
