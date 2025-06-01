@@ -6,8 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Upload, Edit, Trash2, Plus, Save, Image, FileText, Settings } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LogOut, Upload, Edit, Trash2, Plus, Save, Image, FileText, Settings, Eye, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCourses } from '@/hooks/useCourses';
+import { useContactSubmissions } from '@/hooks/useContactSubmissions';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +21,9 @@ const AdminDashboard = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  const { courses, isLoading: coursesLoading, updateCourse, deleteCourse } = useCourses();
+  const { submissions, isLoading: submissionsLoading, updateStatus, deleteSubmission } = useContactSubmissions();
 
   // Check authentication on component mount
   useEffect(() => {
@@ -51,8 +57,7 @@ const AdminDashboard = () => {
 
   const handlePasswordChange = () => {
     // Get current stored credentials
-    const currentUsername = 'admin';
-    const currentStoredPassword = 'admin123';
+    const currentStoredPassword = localStorage.getItem('adminPassword') || 'admin123';
 
     // Validate current password
     if (passwordForm.currentPassword !== currentStoredPassword) {
@@ -107,25 +112,30 @@ const AdminDashboard = () => {
     }));
   };
 
-  const handleImageUpload = () => {
-    toast({
-      title: "Image Upload",
-      description: "Image upload functionality would be implemented here.",
+  const handleToggleCourseActive = (courseId: string, currentStatus: boolean | null) => {
+    updateCourse({
+      id: courseId,
+      updates: { is_active: !currentStatus }
     });
   };
 
-  const handleDocumentUpload = () => {
-    toast({
-      title: "Document Upload",
-      description: "Document upload functionality would be implemented here.",
-    });
+  const handleStatusUpdate = (submissionId: string, newStatus: string) => {
+    updateStatus({ id: submissionId, status: newStatus });
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes Saved",
-      description: "Your changes have been saved successfully.",
-    });
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case 'new':
+        return 'bg-blue-100 text-blue-800';
+      case 'read':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'replied':
+        return 'bg-green-100 text-green-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -156,15 +166,43 @@ const AdminDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Total Courses</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600 mb-2">
+                    {coursesLoading ? '...' : courses.length}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {coursesLoading ? 'Loading...' : `${courses.filter(c => c.is_active).length} active`}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Contact Messages</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600 mb-2">
+                    {submissionsLoading ? '...' : submissions.length}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {submissionsLoading ? 'Loading...' : `${submissions.filter(s => s.status === 'new').length} new`}
+                  </p>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">Website Status</CardTitle>
@@ -172,16 +210,6 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600 mb-2">Live</div>
                   <p className="text-sm text-gray-600">Last updated: Just now</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Total Courses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600 mb-2">5</div>
-                  <p className="text-sm text-gray-600">Active courses available</p>
                 </CardContent>
               </Card>
 
@@ -202,17 +230,17 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button onClick={() => setActiveTab('content')} variant="outline" className="h-20 flex-col">
+                  <Button onClick={() => setActiveTab('courses')} variant="outline" className="h-20 flex-col">
                     <Edit className="h-6 w-6 mb-2" />
-                    Edit Content
+                    Manage Courses
+                  </Button>
+                  <Button onClick={() => setActiveTab('messages')} variant="outline" className="h-20 flex-col">
+                    <MessageSquare className="h-6 w-6 mb-2" />
+                    View Messages
                   </Button>
                   <Button onClick={() => setActiveTab('media')} variant="outline" className="h-20 flex-col">
                     <Upload className="h-6 w-6 mb-2" />
                     Upload Media
-                  </Button>
-                  <Button onClick={() => setActiveTab('courses')} variant="outline" className="h-20 flex-col">
-                    <Plus className="h-6 w-6 mb-2" />
-                    Manage Courses
                   </Button>
                   <Button onClick={() => setActiveTab('settings')} variant="outline" className="h-20 flex-col">
                     <Settings className="h-6 w-6 mb-2" />
@@ -223,60 +251,120 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Content Management Tab */}
-          <TabsContent value="content" className="space-y-6">
+          {/* Courses Management Tab */}
+          <TabsContent value="courses" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Manage Courses</CardTitle>
+                <Button className="finance-gradient text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Course
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {coursesLoading ? (
+                  <div className="text-center py-4">Loading courses...</div>
+                ) : (
+                  <div className="space-y-4">
+                    {courses.map((course) => (
+                      <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-medium">{course.title}</h3>
+                            <Badge className={course.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                              {course.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                            <Badge variant="outline">{course.level}</Badge>
+                            <Badge variant="outline">{course.duration}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{course.description}</p>
+                          <p className="text-sm font-medium text-blue-600">{course.price}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleToggleCourseActive(course.id, course.is_active)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => deleteCourse(course.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Edit Homepage Content</CardTitle>
+                <CardTitle>Contact Form Submissions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hero Section Title
-                  </label>
-                  <Input 
-                    placeholder="Master the Share Market with Professional Coaching"
-                    defaultValue="Master the Share Market with Professional Coaching"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hero Section Description
-                  </label>
-                  <Textarea 
-                    placeholder="Transform your financial future with our comprehensive..."
-                    defaultValue="Transform your financial future with our comprehensive share market coaching programs."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mission Statement
-                  </label>
-                  <Textarea 
-                    placeholder="Our mission is to guide people..."
-                    defaultValue="Our mission is to guide people on their journey to becoming financially free through our easy-to-understand share market coaching programs."
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vision Statement
-                  </label>
-                  <Textarea 
-                    placeholder="Our vision is to create a world..."
-                    defaultValue="Our vision is to create a world where every individual has the knowledge and confidence to grow their wealth through the share market."
-                    rows={4}
-                  />
-                </div>
-
-                <Button onClick={handleSaveChanges} className="finance-gradient text-white">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
+              <CardContent>
+                {submissionsLoading ? (
+                  <div className="text-center py-4">Loading messages...</div>
+                ) : submissions.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">No messages yet</div>
+                ) : (
+                  <div className="space-y-4">
+                    {submissions.map((submission) => (
+                      <div key={submission.id} className="p-4 border rounded-lg">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-medium">{submission.name}</h3>
+                            <p className="text-sm text-gray-600">{submission.email}</p>
+                            {submission.phone && (
+                              <p className="text-sm text-gray-600">{submission.phone}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(submission.status)}>
+                              {submission.status || 'new'}
+                            </Badge>
+                            <Select
+                              value={submission.status || 'new'}
+                              onValueChange={(value) => handleStatusUpdate(submission.id, value)}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="new">New</SelectItem>
+                                <SelectItem value="read">Read</SelectItem>
+                                <SelectItem value="replied">Replied</SelectItem>
+                                <SelectItem value="archived">Archived</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => deleteSubmission(submission.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-gray-700 mb-2">{submission.message}</p>
+                        <p className="text-xs text-gray-500">
+                          Received: {new Date(submission.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -340,45 +428,6 @@ const AdminDashboard = () => {
                       </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Courses Management Tab */}
-          <TabsContent value="courses" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Manage Courses</CardTitle>
-                <Button className="finance-gradient text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Course
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    'Buy High Sell High - ABCD',
-                    'Buy Low Sell High - TFB',
-                    'MYB Strategy & ATH',
-                    'Trend is Our Friend (B to D)',
-                    '50MA & SMC Basics'
-                  ].map((course, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-medium">{course}</h3>
-                        <p className="text-sm text-gray-600">Active course</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </CardContent>
             </Card>

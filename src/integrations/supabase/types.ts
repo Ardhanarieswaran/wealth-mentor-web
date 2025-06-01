@@ -9,7 +9,159 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_settings: {
+        Row: {
+          id: number
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: string | null
+          features: string[] | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          level: string | null
+          price: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          features?: string[] | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          level?: string | null
+          price?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          features?: string[] | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          level?: string | null
+          price?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      uploaded_files: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: number
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: number
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: number
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      website_content: {
+        Row: {
+          content_type: string
+          content_value: string | null
+          created_at: string | null
+          id: number
+          page_name: string
+          section_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_type: string
+          content_value?: string | null
+          created_at?: string | null
+          id?: number
+          page_name: string
+          section_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_type?: string
+          content_value?: string | null
+          created_at?: string | null
+          id?: number
+          page_name?: string
+          section_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
